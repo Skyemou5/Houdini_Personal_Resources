@@ -1,0 +1,615 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pythonPanelDocument>
+  <!-- This file contains definitions of Python interfaces and the
+ interfaces menu.  It should not be hand-edited when it is being
+ used by the application.  Note, that two definitions of the
+ same interface or of the interfaces menu are not allowed
+ in a single file. -->
+  <interface name="axiom_v02_b001_profiler" label="Axiom v01 b001 Profiler" icon="opdef:/Sop/axiom_velocityTrail::02.001?IconImage" showNetworkNavigationBar="false" help_url="">
+    <script><![CDATA[import math
+from PySide2 import QtCore, QtWidgets, QtGui
+
+globalInterface = None
+
+class AxiomProfile(QtWidgets.QFrame):
+    
+    scrollChanged = QtCore.Signal(int)
+    dragChanged = QtCore.Signal(int)
+    cursorChanged = QtCore.Signal(int)
+    
+    pos_x = -1
+    pos_y = -1
+    
+    clicked = False
+    
+    nodeLabel = None
+    timingLayout = None
+    timingLayoutRows = {}
+    
+    def __init__(self):
+        QtWidgets.QFrame.__init__(self)
+
+        self.setMouseTracking(True)
+    
+        self.pos_x = -1
+        self.pos_y = -1
+        self.clicked = False
+    
+        self.nodeLabel = QtWidgets.QLabel('Axiom Solver')
+        self.nodeLabel.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.nodeLabel.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+
+        selectorLayout = QtWidgets.QHBoxLayout()
+        selectorLayout.addWidget(self.nodeLabel)
+
+        if self.timingLayout is None:
+            self.timingLayout = QtWidgets.QVBoxLayout()
+            self.timingLayout.setSpacing(0)
+            
+        self.timingLayoutRows["empty"] = timeline("", dict(), 0, 1, self.scrollChanged, self.dragChanged, self.cursorChanged)
+        self.timingLayout.addWidget(self.timingLayoutRows["empty"])
+        
+        MasterLayout = QtWidgets.QVBoxLayout()
+        MasterLayout.addLayout(selectorLayout)
+        MasterLayout.addLayout(self.timingLayout)
+
+        self.setLayout(MasterLayout)
+        
+        self.refreshTimelineData()
+        
+    def refreshTimelineData(self):
+    
+        node = hou.selectedNodes()
+        
+        if len(node) > 0:
+            node = node[0]
+        else:
+            node = None
+            
+        for row in self.timingLayoutRows.keys():
+            self.timingLayoutRows[row].hide()
+            
+        self.timingLayoutRows["empty"].show()
+        
+        if node is None:
+            return 0
+    
+        self.nodeLabel.setText("Node: " + node.name())
+        
+        geo = node.geometry()
+        
+        if geo.findGlobalAttrib("axiom_profile") is None:
+            return 0
+        
+        data = geo.attribValue("axiom_profile")
+        
+        timelines = data.split("<tl>")
+        
+        lo = -1;
+        hi = -1;
+        
+        allValues = {}
+        
+        for timelineO in timelines:
+            
+            timlineO_data = timelineO.split("<tld>")
+            
+            if len(timlineO_data) != 2:
+                continue
+            
+            label = timlineO_data[0]
+            
+            timlineO_data = timlineO_data[1].split("<tlo>")
+            
+            values = {}
+            
+            count = 0
+            
+            for timlineO_dataObject in timlineO_data:
+            
+                timline_dataObject_data = timlineO_dataObject.split("<tlod>")
+                
+                if len(timline_dataObject_data) == 3:
+                
+                    inVal = float(timline_dataObject_data[1])
+                    outVal = float(timline_dataObject_data[2])
+                    
+                    if lo == -1:
+                        lo = inVal
+                    if hi == -1:
+                        hi = inVal
+                
+                    lo = min(inVal, lo)
+                    lo = min(outVal, lo)
+                    
+                    hi = max(inVal, hi)
+                    hi = max(outVal, hi)
+        
+                    values[timline_dataObject_data[0] + ":" + str(count)] = [inVal, outVal]
+                    
+                    count += 1
+             
+            allValues[label] = values
+            
+        order = ["input", "solver", "script", "compute", "blit", "queue", "output", "total"]
+                 
+        for values in order:
+        
+            if not values in allValues.keys():
+                continue
+                
+            if not values in self.timingLayoutRows.keys():
+                self.timingLayoutRows[values] = timeline(values, allValues[values], lo, hi, self.scrollChanged, self.dragChanged, self.cursorChanged)
+                self.timingLayout.addWidget(self.timingLayoutRows[values])
+                
+            self.timingLayoutRows[values].refreshTimelineData(allValues[values], lo, hi)
+                
+            if len(allValues[values].keys()) == 0:
+                self.timingLayoutRows[values].hide()
+            else:
+                self.timingLayoutRows[values].show()
+                self.timingLayoutRows["empty"].hide()
+    
+    def wheelEvent(self, event):
+        offset = event.delta() / 4
+        self.scrollChanged.emit(offset)
+
+    def mousePressEvent(self, event):
+        #print("click")
+        if self.clicked == False:
+            self.pos_x = event.pos().x()
+            self.clicked = True
+            
+    def mouseMoveEvent(self, event):
+        #print("move")
+        if self.clicked:
+            offset = event.pos().x() - self.pos_x
+            self.pos_x = event.pos().x()
+            self.dragChanged.emit(offset)
+        
+    def mouseReleaseEvent(self, event):
+        #print("release")
+        if self.clicked == True:
+            self.clicked = False
+
+        
+
+        
+class timeline(QtWidgets.QWidget):
+    
+    timeLineWidget = None
+    
+    def __init__(self, label, values, lo, hi, scrollEventSignal, dragEventSignal, cursorSignal, parent=None):
+    
+        QtWidgets.QWidget.__init__(self, parent)
+        
+        #Sets the mouseMoveEventToTrack live. Without it the even is only triggered when clicked.
+        self.setMouseTracking(True)
+        
+        MasterLayout = QtWidgets.QHBoxLayout()
+        
+        formatLabel = label
+        
+        nodeLabel = QtWidgets.QLabel(formatLabel.capitalize())
+        nodeLabel.setFocusPolicy(QtCore.Qt.NoFocus)
+        nodeLabel.setFixedWidth(100)
+        
+        MasterLayout.addWidget(nodeLabel)
+        
+        self.timeLineWidget = timelineView(label, values, lo, hi, scrollEventSignal, dragEventSignal, cursorSignal)
+        
+        MasterLayout.addWidget(self.timeLineWidget)
+        
+        MasterLayout.setContentsMargins(0,0,0,0)
+        
+        self.setLayout(MasterLayout)
+        
+        self.setGeometry(1000, 1000, 1000, 1000)
+
+        self.show()
+        
+    def refreshTimelineData(self, values, lo, hi):
+        self.timeLineWidget.refreshTimelineData(values, lo, hi)
+        
+        
+class timelineView(QtWidgets.QWidget):
+
+    pos_x = 0
+    pos_y = 0
+    
+    click_pos = 0
+    drag_pos = 0
+    clicked = False
+    
+    cursor_pos = 0
+    
+    data = None
+    shapes = []
+    size = [0, 0]
+    lo = 0
+    hi = 0
+    label = ""
+    offset = 0
+    scale = 0
+    
+    cursorSignal = None
+    
+    def __init__(self, label, values, lo, hi, scrollEventSignal, dragEventSignal, cursorSignal, parent=None):
+    
+        QtWidgets.QWidget.__init__(self, parent)
+        
+        #Sets the mouseMoveEventToTrack live. Without it the even is only triggered when clicked.
+        self.setMouseTracking(True)
+        
+        self.label = label
+        
+        self.shapes = values
+        
+        self.lo = lo
+        self.hi = hi
+        
+        self.pos_x = -100
+        self.pos_y = -100
+        self.cursor_pos = -100
+        
+        self.setGeometry(1000, 1000, 1000, 1000)
+
+        self.setAttribute(QtCore.Qt.WA_StyledBackground, True)
+        self.setStyleSheet("background-color: rgb(32, 32, 32);")
+        
+        cursorSignal.connect(self.updateCursor)
+        scrollEventSignal.connect(self.updateScale)
+        dragEventSignal.connect(self.updateOffset)
+        
+        self.cursorSignal = cursorSignal
+        
+        self.show()
+        
+    def refreshTimelineData(self, values, lo, hi):
+        self.shapes = values
+        self.lo = lo
+        self.hi = hi
+        self.update()
+    
+    def resizeEvent(self, event):
+        self.size[0] = event.size().width()
+        self.size[1] = event.size().height()
+        self.update()
+        
+    def leaveEvent(self, event):
+        self.pos_x = -100
+        self.pos_y = -100
+        self.cursor_pos = -100
+        self.update()
+        self.cursorSignal.emit(self.cursor_pos)
+        
+    #update when the mouse moves.
+    def mouseMoveEvent(self, event):
+        self.pos_x = event.pos().x()
+        self.pos_y = event.pos().y()
+        self.cursor_pos = event.pos().x()
+        if self.clicked:
+            self.drag_pos = event.pos().x()
+        self.update()
+        self.cursorSignal.emit(self.cursor_pos)
+        
+    def mousePressEvent(self, event):
+        if self.clicked == False:
+            self.click_pos = event.pos().x()
+            self.drag_pos = event.pos().x()
+            self.clicked = True
+        self.update()
+        
+            
+    def mouseReleaseEvent(self, event):
+        if self.clicked == True:
+            self.clicked = False
+        self.update()
+        
+        
+    def updateCursor(self, cursor):
+        self.cursor_pos = cursor
+        self.update()
+        
+    def updateOffset(self, offset):
+        self.offset += offset
+        self.update()
+        
+    def updateScale(self, scale):
+        self.scale -= scale
+        self.update()
+        
+    #Paints all the shapes.
+    def paintEvent(self, event):
+        painter = QtGui.QPainter()
+        painter.begin(self)
+        self.paintShapes(painter)
+        painter.end()
+
+    def paintShapes(self, painter):
+    
+        global_offset = self.scale
+        if (global_offset * 2.2) > self.size[0]:
+            global_offset = self.size[0] / 2.2
+            self.scale = self.size[0] / 2.2
+        global_width = self.size[0] - (global_offset * 2)
+        global_height_offset = 8
+        global_height = self.size[1] - (global_height_offset * 2)
+
+        global_offset += self.offset
+        
+        global_scale = float(global_width) / float(self.size[0])
+        
+        global_offset_scale = float(global_offset) / float(self.size[0])
+
+        color = QtGui.QColor(0, 64, 64)
+        colorOutline = QtGui.QColor(0, 100, 100)
+        colorHighlight = QtGui.QColor(0, 128, 128)
+        
+        if "queue" in self.label:
+            color = QtGui.QColor(64, 64, 0)
+            colorOutline = QtGui.QColor(100, 100, 0)
+            colorHighlight = QtGui.QColor(128, 128, 0)
+        elif "script" in self.label:
+            color = QtGui.QColor(0, 64, 0)
+            colorOutline = QtGui.QColor(0, 100, 0)
+            colorHighlight = QtGui.QColor(0, 128, 0)
+        elif "input" in self.label or "output" in self.label:
+            color = QtGui.QColor(64, 0, 0)
+            colorOutline = QtGui.QColor(100, 0, 0)
+            colorHighlight = QtGui.QColor(128, 0, 0)
+        elif "solver" in self.label:
+            color = QtGui.QColor(0, 64, 100)
+            colorOutline = QtGui.QColor(0, 75, 150)
+            colorHighlight = QtGui.QColor(0, 100, 200)
+        
+        
+        #Set default colors.
+        painter.setPen(colorOutline)
+        painter.setBrush(color)
+        
+        
+        #Time Object
+        for shape in self.shapes.keys():
+        
+            values = self.shapes[shape]
+            
+            ms = values[1] - values[0]
+        
+            enter = (values[0] - self.lo) / (self.hi - self.lo)
+            exit = (values[1] - self.lo) / (self.hi - self.lo)
+                    
+            x = enter * global_width
+            y = global_height_offset
+            width = (exit - enter) * global_width
+            height = global_height
+            
+            x += global_offset
+            
+            if width < 2:
+                width = 2
+            
+            #Find relative mouse position.
+            rel_x = self.pos_x - x
+            rel_y = self.pos_y - y
+            
+            #If the mouse is inside the shape's bounds, use the highlighted color.
+            if(rel_x > 0 and rel_x < width and self.pos_x > 0) and self.clicked == False:
+                painter.setBrush(colorHighlight)
+                painter.setPen(colorHighlight)
+            else:
+                painter.setBrush(color)
+                painter.setPen(colorOutline)
+            
+            painter.drawRect(x, y, width, height)
+            
+
+        #Time Object Label
+        if self.clicked == False:
+                
+            for shape in self.shapes.keys():
+            
+                values = self.shapes[shape]
+                
+                ms = values[1] - values[0]
+                
+                enter = (values[0] - self.lo) / (self.hi - self.lo)
+                exit = (values[1] - self.lo) / (self.hi - self.lo)
+                
+                x = enter * global_width
+                y = global_height_offset
+                width = (exit - enter) * global_width
+                height = global_height
+                
+                x += global_offset
+                
+                if width < 2:
+                    width = 2
+                    
+                #Find relative mouse position.
+                rel_x = self.pos_x - x
+                rel_y = self.pos_y - y
+    
+                if(rel_x > 0 and rel_x < width and self.pos_x > 0):
+                    textColor = QtGui.QColor(255, 255, 255)
+                    textColorFill = QtGui.QColor(0, 0, 0)
+                    painter.setBrush(textColorFill)
+                    painter.setPen(textColor)
+    
+                    label = shape.split(":")[0] + " : " + str(int(ms*1000)) + " ms"
+                    
+                    height = painter.fontMetrics().boundingRect(label).height()
+                    
+                    painter.drawText(self.pos_x + 10, (self.size[1] / 2) + (height/4), label)
+                    
+                    break
+
+
+        #Time Line Markers
+        sep = int(global_width / 86)
+        
+        sep = max(2, sep)
+        
+        for i in range(sep):
+        
+            space = float(i) / float(sep-1)
+            x = space * global_width
+            x += global_offset
+            
+            base = 86
+            
+            color = QtGui.QColor(base, base, base, 128)
+            
+            if (i % 4) == 0:
+                color = QtGui.QColor(base, base, base, 200)
+            
+            painter.setBrush(color)
+            painter.setPen(color)
+            
+            painter.drawLine(x, 0, x, self.size[1])
+            
+            if "input" in self.label:
+                textColor = QtGui.QColor(128, 128, 128)
+                textColorFill = QtGui.QColor(0, 0, 0)
+                painter.setBrush(textColorFill)
+                painter.setPen(textColor)
+                
+                ms = (self.hi - self.lo) * space * 1000
+                
+                ms *= 100
+                ms = int(ms)
+                ms /= 100.0
+    
+                label = str(ms) + " ms"
+                
+                offset = painter.fontMetrics().boundingRect(label).height() / 2
+                
+                painter.drawText(x, offset + 1, label)
+                
+                
+        #Time Line Head Label
+        if self.clicked == False:
+                    
+            color = QtGui.QColor(255, 255, 255, 128)
+    
+            painter.setBrush(color)
+            painter.setPen(color)
+            
+            painter.drawLine(self.cursor_pos, 0, self.cursor_pos, self.size[1])
+            
+            textColor = QtGui.QColor(255, 255, 255)
+            textColorFill = QtGui.QColor(0, 0, 0)
+            painter.setBrush(textColorFill)
+            painter.setPen(textColor)
+                            
+            ms = (self.hi - self.lo) * float(float(float(self.pos_x - global_offset) / self.size[0]) / global_scale) * 1000.0
+                
+            ms *= 100
+            ms = int(ms)
+            ms /= 100.0
+    
+            label = str(ms) + " ms"
+            
+            offset = 55
+            if ms > 100:
+                offset += 10
+                
+            offset = painter.fontMetrics().boundingRect(label).width() + 10
+            height = painter.fontMetrics().boundingRect(label).height()
+                        
+            painter.drawText(self.pos_x - offset, (self.size[1] / 2) + (height/4), label)
+        
+        
+        #Timeline Measure Tool
+        if self.clicked:
+        
+            color = QtGui.QColor(100, 180, 255, 64)
+            colorOutline = QtGui.QColor(255, 255, 255, 128)
+            
+            painter.setBrush(color)
+            painter.setPen(colorOutline)
+            
+            width = abs(self.click_pos - self.drag_pos)
+            x = min(self.click_pos, self.drag_pos)
+                
+            painter.drawRect(x, -10, width, 1000)
+            
+            textColor = QtGui.QColor(255, 255, 255)
+            textColorFill = QtGui.QColor(0, 0, 0)
+            painter.setBrush(textColorFill)
+            painter.setPen(textColor)
+            
+            ms0 = (self.hi - self.lo) * float(float(float(self.click_pos - global_offset) / self.size[0]) / global_scale) * 1000.0
+            ms1 = (self.hi - self.lo) * float(float(float(self.drag_pos - global_offset) / self.size[0]) / global_scale) * 1000.0
+            
+            ms = abs(ms0 - ms1)
+            
+            ms *= 100
+            ms = int(ms)
+            ms /= 100.0
+    
+            label = str(ms) + " ms"
+            
+            width = painter.fontMetrics().boundingRect(label).width()
+            height = painter.fontMetrics().boundingRect(label).height()
+            
+            painter.drawText(((self.click_pos + self.drag_pos) / 2) - (width / 2), (self.size[1] / 2) + (height/4), label)
+            
+            
+        #Fixed Markers
+            
+        #Realtime Marker
+        space = (1.0 / float(hou.expandString("$FPS"))) / (self.hi - self.lo)
+        x = space * global_width
+        x += global_offset
+        
+        color = QtGui.QColor(255, 255, 64, 64)
+        
+        painter.setBrush(color)
+        painter.setPen(color)
+        
+        painter.drawLine(x, 0, x, self.size[1])
+        
+        #Second Marker
+        space = 1.0 / (self.hi - self.lo)
+        x = space * global_width
+        x += global_offset
+        
+        color = QtGui.QColor(255, 255, 64, 64)
+        
+        painter.setBrush(color)
+        painter.setPen(color)
+        
+        painter.drawLine(x, 0, x, self.size[1])
+        
+        #Burger Marker
+        space = 15.0 / (self.hi - self.lo)
+        x = space * global_width
+        x += global_offset
+        
+        color = QtGui.QColor(255, 255, 64, 64)
+        
+        painter.setBrush(color)
+        painter.setPen(color)
+        
+        painter.drawLine(x, 0, x, self.size[1])
+        
+        
+        
+
+        
+
+def onCreateInterface():
+    global globalInterface
+    globalInterface = AxiomProfile()
+    return globalInterface
+
+def onNodePathChanged(node):
+    global globalInterface
+    globalInterface.refreshTimelineData()
+
+]]></script>
+    <includeInToolbarMenu menu_position="0" create_separator="true"/>
+    <help><![CDATA[]]></help>
+  </interface>
+</pythonPanelDocument>

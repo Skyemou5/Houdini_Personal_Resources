@@ -1,0 +1,10 @@
+Adding script to Houdini:
+
+1. In the custom shelf tab (or other shelf tab), right click and click "New Tool..."
+2. Give the tool a name and label in the "Options" tab.
+3. Go to the "Script" tab (next to the "Options" tab).
+4. Copy paste the content of "batch_import.py" into the script textbox.
+5. Make sure the script language is set to Python in the "Script" tab.
+6. Apply and done.
+
+Tested in Houdini 16.5 and Houdini 17

@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="labs_toolset" label="SideFX Labs">
+    <memberTool name="update_toolset"/>
+    <memberTool name="labs::autouv"/>
+    <memberTool name="labs::visualize_uvs"/>
+    <memberTool name="labs::maps_baker"/>
+    <memberTool name="labs::voxelmesh"/>
+    <memberTool name="labs::vertex_animation_textures"/>
+    <memberTool name="labs::texture_sheets"/>
+    <memberTool name="labs::make_loop"/>
+    <memberTool name="labs::osm_import"/>
+    <memberTool name="labs::csv_exporter"/>
+    <memberTool name="labs::rbd_to_fbx"/>
+    <memberTool name="labs::volume_texture"/>
+    <memberTool name="labs::detail_mesh"/>
+    <memberTool name="labs::enable_go_z"/>
+    <memberTool name="labs::ruler"/>
+  </toolshelf>
+
+  <tool name="labs::autouv" label="Auto UV" icon="opdef:/labs::Sop/autouv?IconSVG">
+    <helpURL>operator:Sop/autouv?namespace=labs</helpURL>
+    <script scriptType="python"><![CDATA[import soptoolutils
+soptoolutils.genericTool(kwargs, 'labs::autouv', exact_node_type=False)]]></script>
+  </tool>
+
+  <tool name="labs::visualize_uvs" label="UV Visualize" icon="opdef:/labs::Sop/visualize_uvs?IconSVG">
+    <helpURL>operator:Sop/visualize_uvs?namespace=labs</helpURL>
+    <script scriptType="python"><![CDATA[import soptoolutils
+soptoolutils.genericTool(kwargs, 'labs::visualize_uvs', exact_node_type=False)]]></script>
+  </tool>
+
+  <tool name="labs::maps_baker" label="MapsBaker" icon="opdef:/labs::Sop/maps_baker?IconSVG">
+    <helpURL>operator:Sop/maps_baker-4.0?namespace=labs</helpURL>
+    <script scriptType="python"><![CDATA[import soptoolutils
+soptoolutils.genericTool(kwargs, 'labs::maps_baker', exact_node_type=False)]]></script>
+  </tool>
+
+
+  <tool name="labs::voxelmesh" label="Voxel Mesh" icon="opdef:/labs::Sop/voxelmesh?IconSVG">
+    <helpURL>operator:Sop/voxelmesh?namespace=labs</helpURL>
+    <script scriptType="python"><![CDATA[import soptoolutils
+soptoolutils.genericTool(kwargs, 'labs::voxelmesh', exact_node_type=False)]]></script>
+  </tool>
+
+  <tool name="labs::vertex_animation_textures" label="VAT" icon="opdef:/labs::Driver/vertex_animation_textures::2.1?IconSVG">
+    <helpURL>operator:Driver/vertex_animation_textures?namespace=labs</helpURL>
+    <script scriptType="python"><![CDATA[
+rop = hou.node('/out').createNode("labs::vertex_animation_textures", exact_type_name=False)
+rop.setSelected(True, True)
+rop.moveToGoodPosition()
+]]></script>
+  </tool>
+
+  <tool name="labs::texture_sheets" label="T Sheets" icon="opdef:/labs::Driver/texture_sheets::2.0?IconSVG">
+    <helpURL>operator:Driver/texture_sheets-2.0?namespace=labs</helpURL>
+    <script scriptType="python"><![CDATA[
+rop = hou.node('/out').createNode("labs::texture_sheets", exact_type_name=False)
+rop.setSelected(True, True)
+rop.moveToGoodPosition()
+]]></script>
+  </tool>
+
+  <tool name="labs::make_loop" label="Make Loop" icon="opdef:/labs::Sop/make_loop?IconSVG">
+    <helpURL>operator:Sop/make_loop?namespace=labs</helpURL>
+    <script scriptType="python"><![CDATA[import soptoolutils
+soptoolutils.genericTool(kwargs, 'labs::make_loop', exact_node_type=False)]]></script>
+  </tool>
+
+  <tool name="labs::osm_import" label="OSM Import" icon="opdef:/labs::Sop/osm_import?IconSVG">
+    <helpURL>operator:Sop/osm_import?namespace=labs</helpURL>
+    <script scriptType="python"><![CDATA[import soptoolutils
+soptoolutils.genericTool(kwargs, 'labs::osm_import', exact_node_type=False)]]></script>
+  </tool>
+
+  <tool name="labs::csv_exporter" label="CSV Exporter" icon="opdef:/labs::Driver/csv_exporter?IconSVG">
+    <helpURL>operator:Driver/csv_exporter?namespace=labs</helpURL>
+    <script scriptType="python"><![CDATA[
+rop = hou.node('/out').createNode("labs::csv_exporter", exact_type_name=False)
+rop.setSelected(True, True)
+rop.moveToGoodPosition()
+]]></script>
+  </tool>
+
+  <tool name="labs::rbd_to_fbx" label="RBD to FBX" icon="opdef:/labs::Driver/rbd_to_fbx?IconSVG">
+    <helpURL>operator:Driver/rbd_to_fbx-2.0?namespace=labs</helpURL>
+    <script scriptType="python"><![CDATA[
+rop = hou.node('/out').createNode("labs::rbd_to_fbx", exact_type_name=False)
+rop.setSelected(True, True)
+rop.moveToGoodPosition()
+]]></script>
+  </tool>
+
+  <tool name="labs::volume_texture" label="VDB Textures" icon="opdef:/labs::Sop/volume_texture?IconSVG">
+    <helpURL>operator:Sop/volume_texture?namespace=labs</helpURL>
+    <script scriptType="python"><![CDATA[import soptoolutils
+soptoolutils.genericTool(kwargs, 'labs::volume_texture', exact_node_type=False)]]></script>
+  </tool>
+
+  <tool name="labs::enable_go_z" label="Start GoZ" icon="GoZBrush.png">
+    <script scriptType="python"><![CDATA[import hrpyc
+already_running = True
+
+try:
+    connection = hrpyc.rpyc.classic.connect("127.0.0.1", 18811)
+except:
+    already_running = False
+
+if already_running:
+    hou.ui.displayMessage("Go Z Already Running")
+else:
+    hrpyc.start_server()
+    hou.ui.displayMessage("Go Z Port Opened")
+
+temp_goz_node = hou.node("/obj").createNode("geo", "tmp_zbrush")
+temp_goz_node.createNode("labs::goz_export", exact_type_name=False)
+temp_goz_node.destroy()]]></script>
+  </tool>
+
+  <tool name="labs::detail_mesh" label="Detail Mesh" icon="opdef:/labs::Sop/detail_mesh?IconSVG">
+    <helpURL>operator:Sop/detail_mesh?namespace=labs</helpURL>
+    <script scriptType="python"><![CDATA[import soptoolutils
+soptoolutils.genericTool(kwargs, 'labs::detail_mesh', exact_node_type=False)]]></script>
+  </tool>
+
+  <tool name="flowmap_brush" label="Labs Flowmap Brush" icon="flowmap_brush.svg">
+    <helpURL>operator:Sop/comb</helpURL>
+    <toolMenuContext name="network">
+      <contextOpType>Sop/comb</contextOpType>
+    </toolMenuContext>
+    <toolSubmenu>Labs/FlowMap</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import sys
+import toolutils
+
+outputitem = None
+inputindex = -1
+inputitem = None
+outputindex = -1
+
+num_args = 1
+h_extra_args = ''
+pane = toolutils.activePane(kwargs)
+if not isinstance(pane, hou.NetworkEditor):
+    pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    if pane is None:
+       hou.ui.displayMessage(
+               'Cannot create node: cannot find any network pane')
+       sys.exit(0)
+else: # We're creating this tool from the TAB menu inside a network editor
+    pane_node = pane.pwd()
+    if "outputnodename" in kwargs and "inputindex" in kwargs:
+        outputitem = pane_node.item(kwargs["outputnodename"])
+        inputindex = kwargs["inputindex"]
+        h_extra_args += 'set arg4 = "' + kwargs["outputnodename"] + '"\n'
+        h_extra_args += 'set arg5 = "' + str(inputindex) + '"\n'
+        num_args = 6
+    if "inputnodename" in kwargs and "outputindex" in kwargs:
+        inputitem = pane_node.item(kwargs["inputnodename"])
+        outputindex = kwargs["outputindex"]
+        h_extra_args += 'set arg6 = "' + kwargs["inputnodename"] + '"\n'
+        h_extra_args += 'set arg9 = "' + str(outputindex) + '"\n'
+        num_args = 9 
+    if "autoplace" in kwargs:
+        autoplace = kwargs["autoplace"]
+    else:
+        autoplace = False
+    # If shift-clicked we want to auto append to the current
+    # node
+    if "shiftclick" in kwargs and kwargs["shiftclick"]:
+        if inputitem is None:
+            inputitem = pane.currentNode()
+            outputindex = 0
+    if "nodepositionx" in kwargs and             "nodepositiony" in kwargs:
+        try:
+            pos = [ float( kwargs["nodepositionx"] ),
+                    float( kwargs["nodepositiony"] )]
+        except:
+            pos = None
+    else:
+        pos = None
+
+    if not autoplace and not pane.listMode():
+        if pos is not None:
+            pass
+        elif outputitem is None:
+            pos = pane.selectPosition(inputitem, outputindex, None, -1)
+        else:
+            pos = pane.selectPosition(inputitem, outputindex,
+                                      outputitem, inputindex)
+
+    if pos is not None:
+        if "node_bbox" in kwargs:
+            size = kwargs["node_bbox"]
+            pos[0] -= size[0] / 2
+            pos[1] -= size[1] / 2
+        else:
+            pos[0] -= 0.573625
+            pos[1] -= 0.220625
+        h_extra_args += 'set arg2 = "' + str(pos[0]) + '"\n'
+        h_extra_args += 'set arg3 = "' + str(pos[1]) + '"\n'
+h_extra_args += 'set argc = "' + str(num_args) + '"\n'
+            
+pane_node = pane.pwd()
+child_type = pane_node.childTypeCategory().nodeTypes()
+
+if 'comb' not in child_type:
+   hou.ui.displayMessage(
+           'Cannot create node: incompatible pane network type')
+   sys.exit(0)
+
+# First clear the node selection
+pane_node.setSelected(False, True)
+
+h_path = pane_node.path()
+h_preamble = 'set arg1 = "' + h_path + '"\n'
+h_cmd = r''' 
+if ($argc < 2 || "$arg2" == "") then
+   set arg2 = 0
+endif
+if ($argc < 3 || "$arg3" == "") then
+   set arg3 = 0
+endif
+# Automatically generated script
+# $arg1 - the path to add this node
+# $arg2 - x position of the tile
+# $arg3 - y position of the tile
+# $arg4 - input node to wire to
+# $arg5 - which input to wire to
+# $arg6 - output node to wire to
+# $arg7 - the type of this node
+# $arg8 - the node is an indirect input
+# $arg9 - index of output from $arg6
+
+\set noalias = 1
+set saved_path = `execute("oppwf")`
+opcf $arg1
+
+# Node $_obj_geo1_comb1 (Sop/comb)
+set _obj_geo1_comb1 = `run("opadd -e -n -v comb comb1")`
+oplocate -x `$arg2 + 0` -y `$arg3 + 0` $_obj_geo1_comb1
+opparm -V 18.5.393 $_obj_geo1_comb1 switcher ( 1 1 1 1 ) ovrnml ( on ) nmlname ( v ) opacity ( 0.5 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_comb1
+opexprlanguage -s hscript $_obj_geo1_comb1
+opset -p on $_obj_geo1_comb1
+
+opcf $arg1
+
+set oidx = 0
+if ($argc >= 9 && "$arg9" != "") then
+    set oidx = $arg9
+endif
+
+if ($argc >= 5 && "$arg4" != "") then
+    set output = $_obj_geo1_comb1
+    opwire -n $output -$arg5 $arg4
+endif
+if ($argc >= 6 && "$arg6" != "") then
+    set input = $_obj_geo1_comb1
+    if ($arg8) then
+        opwire -n -i $arg6 -0 $input
+    else
+        opwire -n -o $oidx $arg6 -0 $input
+    endif
+endif
+opcf $saved_path
+'''
+hou.hscript(h_preamble + h_extra_args + h_cmd)
+
+]]></script>
+  </tool>
+
+  <tool name="labs::sticker_placer" label="Sticker Placer" icon="$SIDEFXLABS/help/icons/stickerplacer.svg">
+    <toolMenuContext name="network">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>SOP</contextNetType>
+      <contextNetType>CHOP</contextNetType>
+      <contextNetType>ROP</contextNetType>
+      <contextNetType>SHOP</contextNetType>
+      <contextNetType>COP2</contextNetType>
+      <contextNetType>VOP</contextNetType>
+      <contextNetType>VOPNET</contextNetType>
+      <contextNetType>DOP</contextNetType>
+      <contextNetType>TOP</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+
+    <toolMenuContext name="viewer">
+      <contextNetType>OBJ</contextNetType>
+      <contextNetType>SOP</contextNetType>
+      <contextNetType>DOP</contextNetType>
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="cop_viewer">
+      <contextNetType>COP2</contextNetType>
+    </toolMenuContext>
+    <script scriptType="python"><![CDATA[import stickerplacer
+
+dialog = stickerplacer.StickerPlacer(hou.ui.mainQtWindow())
+dialog.show()
+]]></script>
+  </tool>
+
+  <tool name="labs::ruler" label="Ruler" icon="$SIDEFXLABS/help/icons/ruler.svg">
+    <helpText><![CDATA[= Ruler =
+
+#icon: path/to/icon.svg
+#namespace: labs
+#version: 1.0
+
+
+""" Measures distances on geometry. """
+
+= Overview =
+
+Use this tool to draw out quick measurements in the viewport. Note that this tool is currently limited to only working in the Sop context.
+
+Click and drag on the currently displayed geometry to draw out a measurement on it. The measurement represents the distance between the point on the geometry initially clicked on and the point currently being hovered on. 
+
+You can draw out multiple measurements. They will persist in the viewport until a new state is entered, at which point they will be destroyed. The only states that are an exception to this are the selection state and the view state. This allows you to continue to tumble around while still putting down measurements.
+
+Press the Undo hotkey to remove a measurement (default is 'z').
+
+Press the Copy to Clipboard hotkey to copy the most recent measurement to the clipboard (default is 'q').
+
+Press the Pop Copy hotkey to copy to clipboard and remove the most recent measurement (default is 'f').
+
+The state will respect point snapping if it is currently enabled.
+
+The state will intersect against one of the principle planes (the xy, xz, and yz planes) if no geometry is underneath the cursor.
+
+Angle snapping can be enabled by holding down Ctrl while dragging. This will find the angle between the vector of the current measurement and the most reasonable axis, based on the current view, if the measurement were to be projected onto the most reasonable principle plane that contains that axis. It will then take that angle, and snap it to the closest multiple of 15, in degrees.
+
+Note: There are currently issues with point snapping and angle snapping when object level transforms are present.
+
+Note: Its not advisable to have object level scales when using this tool. If they are present, the measurement will account for them. This puts the measurement value in object space units, whereas SOP parameters expect values to be in sop-local units. To convert for uniform scales at the object level, you should divide the measurement value by the object uniform scale. For non-uniform object scales however, there is no simple conversion and it depends on the direction of the measurement. ]]></helpText>
+    <toolMenuContext name="network">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <script scriptType="python"><![CDATA[import stateutils
+
+# We want to launch a SOP state, so we need to make sure the
+# viewer is at the SOP level first
+viewer = stateutils.findSceneViewer()
+network = viewer.pwd()
+if network.childTypeCategory() != hou.sopNodeTypeCategory():
+    # The user pressed Enter without selecting an object
+    raise hou.Error("You must be in a sop network to use this tool.")
+if network.displayNode() == None:
+    raise hou.Error("You must have the display flag set on a node.")
+# Set the viewer's current state to my state
+viewer.setCurrentState("labs::ruler")
+]]></script>
+  </tool>
+</shelfDocument>

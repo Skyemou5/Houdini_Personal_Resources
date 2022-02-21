@@ -1,0 +1,9 @@
+{
+	"env": [
+		{
+			"MOPSPLUS": "C:/Users/Henry/Projects/VFX/MOPS_Plus"
+		},
+	],
+	"path": "$MOPSPLUS"
+	
+}

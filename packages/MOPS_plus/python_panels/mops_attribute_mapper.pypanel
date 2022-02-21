@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pythonPanelDocument>
+  <!-- This file contains definitions of Python interfaces and the
+ interfaces menu.  It should not be hand-edited when it is being
+ used by the application.  Note, that two definitions of the
+ same interface or of the interfaces menu are not allowed
+ in a single file. -->
+  <interface name="mops_attribute_mapper_ui" label="MOPs Attribute Mapper" icon="MISC_python" showNetworkNavigationBar="false" help_url="">
+    <script><![CDATA[########################################################################
+
+from mops_mapper import mapper_ui
+# reload(mapper_ui)
+
+global MOPs_Attribute_Mapper_UI
+
+def onCreateInterface():
+    global MOPs_Attribute_Mapper_UI
+    MOPs_Attribute_Mapper_UI = mapper_ui.MOPs_Attribute_Mapper()
+    return MOPs_Attribute_Mapper_UI
+    
+def onNodePathChanged(node):
+    # if we've just selected a MOPs Mapper node, we want to
+    # get the reference to the root widget and tell what node to watch.
+    if node.type().name().startswith("MOPSPlus::Attribute_Mapper"):
+        global MOPs_Attribute_Mapper_UI
+        if MOPs_Attribute_Mapper_UI is not None:
+            MOPs_Attribute_Mapper_UI.setCurrentNode(node)]]></script>
+    <showInParametersPane optype="MOPSPlus::Sop/Attribute_Mapper::1.0"/>
+    <help><![CDATA[]]></help>
+  </interface>
+</pythonPanelDocument>

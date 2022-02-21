@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="mops_plus" label="MOPs+">
+    <memberTool name="activate_tool"/>
+  </toolshelf>
+
+  <tool name="activate_tool" label="Activate MOPs+" icon="$MOPSPLUS/icons/mops_logo_01.svg">
+    <script scriptType="python"><![CDATA[import traceback
+
+def getCurrentNetworkEditorPane():
+    editors = [pane for pane in hou.ui.paneTabs() if isinstance(pane, hou.NetworkEditor) and pane.isCurrentTab()]
+    return editors[-1]
+    
+network = getCurrentNetworkEditorPane()
+pwd = network.pwd()
+# if pwd isn't a geometry container, we'll have to make one.
+category = pwd.childTypeCategory().name()
+if category != "Sop":
+    if category != 'Object':
+        try:
+            pwd = pwd.createNode("sopnet")
+        except:
+            network.setPwd(hou.node("/obj"))
+            pwd = hou.node("/obj").createNode("geo")
+    else:
+        pwd = pwd.createNode("geo")
+
+        
+node = pwd.createNode("MOPSPlus::Activator::1.0")
+node.setCurrent(True, clear_all_selected=True)
+try:
+    node.parm("activate_btn").pressButton()
+    #if temp_pwd is not None:
+    #    temp_pwd.destroy()
+except:
+    print(traceback.format_exc())]]></script>
+  </tool>
+</shelfDocument>

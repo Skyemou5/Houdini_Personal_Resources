@@ -1,0 +1,6 @@
+[submodule "packages/qLib"]
+	path = packages/qLib
+	url = https://github.com/qLab/qLib.git
+[submodule "packages/MOPS"]
+	path = packages/MOPS
+	url = https://github.com/toadstorm/MOPS.git
