@@ -4,3 +4,6 @@
 [submodule "packages/MOPS"]
 	path = packages/MOPS
 	url = https://github.com/toadstorm/MOPS.git
+[submodule "etc_assets/OpenColorIO-Configs"]
+	path = etc_assets/OpenColorIO-Configs
+	url = https://github.com/imageworks/OpenColorIO-Configs.git
