@@ -1,0 +1,12 @@
+{
+    "env": [
+        {"bens_tools": "/home/ben/CG/houdini/Houdini_Personal_Resources/HDA/bens_tools"},
+        {"bens_old_tools": "/home/ben/CG/houdini/Houdini_Personal_Resources/HDA/bens_tools/old"},
+        {"EZ_pack": "/home/ben/CG/houdini/Houdini_Personal_Resources/HDA/EZ_pack"},
+        {"bens_other_tools": "/home/ben/CG/houdini/Houdini_Personal_Resources/HDA/other"},
+        {
+            "HOUDINI_OTLSCAN_PATH": "$bens_tools/otls:$bens_other_tools:$EZ_pack:$bens_old_tools"
+        }
+    ],
+    "path": "$bens_tools:$bens_other_tools:$EZ_pack:$bens_old_tools"   
+}
