@@ -1,0 +1,65 @@
+{
+    "env": [
+        {
+            "AXIOM_3_0": "/home/ben/CG/houdini/Houdini_Personal_Resources/packages/axiom3.0.119"
+        },
+        {
+            "AXIOM_3_0_METAL_LIBRARY_16": "$HOUDINI_PACKAGE_PATH/axiom3.0.119/metal/axiom3.0_16.metallib"
+        },
+        {
+            "AXIOM_3_0_METAL_LIBRARY_32": "$HOUDINI_PACKAGE_PATH/axiom3.0.119/metal/axiom3.0_32.metallib"
+        },
+        {
+            "HOUDINI_PATH": [
+                {
+                    "houdini_version == '19.5.493'": "$AXIOM_3_0/houdini19.5.493",
+                    "method": "append"
+                },
+                {
+                    "houdini_version == '19.5.435'": "$AXIOM_3_0/houdini19.5.435",
+                    "method": "append"
+                },
+                {
+                    "houdini_version == '19.5.403'": "$AXIOM_3_0/houdini19.5.403",
+                    "method": "append"
+                },
+                {
+                    "houdini_version == '19.5.368'": "$AXIOM_3_0/houdini19.5.368",
+                    "method": "append"
+                },
+                {
+                    "houdini_version == '19.5.303'": "$AXIOM_3_0/houdini19.5.303",
+                    "method": "append"
+                },
+                {
+                    "houdini_version == '19.0.720'": "$AXIOM_3_0/houdini19.0.720",
+                    "method": "append"
+                },
+                {
+                    "houdini_version == '19.0.657'": "$AXIOM_3_0/houdini19.0.657",
+                    "method": "append"
+                },
+                {
+                    "houdini_version == '19.0.622'": "$AXIOM_3_0/houdini19.0.622",
+                    "method": "append"
+                },
+                {
+                    "houdini_version == '19.0.589'": "$AXIOM_3_0/houdini19.0.589",
+                    "method": "append"
+                },
+                {
+                    "houdini_version == '19.0.561'": "$AXIOM_3_0/houdini19.0.561",
+                    "method": "append"
+                },
+                {
+                    "houdini_version == '19.5.493' or houdini_version == '19.5.435' or houdini_version == '19.5.403' or houdini_version == '19.5.368' or houdini_version == '19.5.303' or houdini_version == '19.0.720' or houdini_version == '19.0.657' or houdini_version == '19.0.622' or houdini_version == '19.0.589' or houdini_version == '19.0.561'": "$AXIOM_3_0/houdini",
+                    "method": "append"
+                },
+                {
+                    "houdini_version != '19.5.493' and houdini_version != '19.5.435' and houdini_version != '19.5.403' and houdini_version != '19.5.368' and houdini_version != '19.5.303' and houdini_version != '19.0.720' and houdini_version != '19.0.657' and houdini_version != '19.0.622' and houdini_version != '19.0.589' and houdini_version != '19.0.561'": "$AXIOM_3_0/houdini_fallback",
+                    "method": "append"
+                }
+            ]
+        }
+    ]
+}
